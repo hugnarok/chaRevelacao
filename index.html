@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chá Revelação</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Mea+Culpa&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="hearts-background"></div>
+    
+    <div class="container">
+        <!-- STEP 1: Mensagem e Contador de Votos -->
+        <div id="step1" class="step active">
+            <div class="banner">
+                <h1 class="banner-title">Chá Revelação</h1>
+                <h2 class="banner-subtitle">Ana e Rafael</h2>
+            </div>
+            
+            <div class="message-box">
+                <p class="poetic-message">Uma promessa cumprida, um amor sem medida e um novo capítulo da nossa história.</p>
+            </div>
+
+            <div class="vote-section">
+                <h2 class="vote-title">O que você acha?</h2>
+                <div class="vote-buttons">
+                    <button class="vote-btn vote-pink" onclick="vote('menina')">
+                        <div class="vote-bear-container">
+                            <img src="ursinho_menina.png" alt="Ursinho Menina" class="vote-bear-image">
+                        </div>
+                        <span class="vote-label">Menina</span>
+                    </button>
+                    <button class="vote-btn vote-blue" onclick="vote('menino')">
+                        <div class="vote-bear-container">
+                            <img src="ursinho_menino.png" alt="Ursinho Menino" class="vote-bear-image">
+                        </div>
+                        <span class="vote-label">Menino</span>
+                    </button>
+                </div>
+                
+                <div class="vote-counts">
+                    <div class="vote-count-item">
+                        <span class="count-number" id="countMenina">0</span>
+                        <span class="count-label">Time Menina</span>
+                    </div>
+                    <div class="vote-count-item">
+                        <span class="count-number" id="countMenino">0</span>
+                        <span class="count-label">Time Menino</span>
+                    </div>
+                </div>
+
+                <button class="next-btn" onclick="goToStep(2)" id="nextBtn1" disabled>
+                    Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: Duas Opções com Ursinhos -->
+        <div id="step2" class="step hidden">
+            <div class="banner">
+                <h1 class="banner-title">Chá Revelação</h1>
+                <h2 class="banner-subtitle">Ana e Rafael</h2>
+            </div>
+
+            <div class="options-container">
+                <div class="option-card option-pink">
+                    <div class="cloud">
+                        <img src="ursinho_menina.png" alt="Ursinho Menina" class="teddy-bear-image">
+                    </div>
+                </div>
+
+                <div class="option-card option-blue">
+                    <div class="cloud">
+                        <img src="ursinho_menino.png" alt="Ursinho Menino" class="teddy-bear-image">
+                    </div>
+                </div>
+            </div>
+
+            <p class="discover-text">Clique acima para descobrir</p>
+
+            <button class="next-btn" onclick="goToStep(3)">
+                Ver Contagem Regressiva
+            </button>
+        </div>
+
+        <!-- STEP 3: Timer de Contagem Regressiva -->
+        <div id="step3" class="step hidden">
+            <div class="countdown-container">
+                <h2 class="countdown-title">A revelação está chegando! 🎉</h2>
+                <div class="countdown-display-simple">
+                    <div class="time-unit-large">
+                        <span class="time-value-large" id="seconds">05</span>
+                        <span class="time-label-large">Segundos</span>
+                    </div>
+                </div>
+                <p class="countdown-message">Prepare-se para a grande revelação!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

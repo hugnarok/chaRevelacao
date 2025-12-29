@@ -309,20 +309,18 @@ function showRevelation() {
     if (revealResult === 0) {
         // É MENINA
         countdownContainer.innerHTML = `
-            <h2 style="font-size: 3.5rem; color: #ff6b9d; margin-bottom: 30px; font-family: 'Funnel Display', sans-serif;">🎉 É uma MENINA! 🎉</h2>
+            <h2 style="font-size: 3.5rem; color: #ff6b9d; margin-bottom: 30px; font-family: 'Funnel Display', sans-serif;">É uma MENINA!</h2>
             <div style="margin: 30px 0;">
                 <img src="ursinho_menina.png" alt="Ursinho Menina" style="max-width: 250px; width: 100%; height: auto; animation: bearBounce 2s ease-in-out infinite;">
             </div>
-            <p style="font-size: 1.5rem; color: #8b5a7a; font-style: italic; margin-top: 20px; font-family: 'Funnel Display', sans-serif;">Parabéns pela nova jornada! 💕</p>
         `;
     } else {
         // É MENINO
         countdownContainer.innerHTML = `
-            <h2 style="font-size: 3.5rem; color: #4a90e2; margin-bottom: 30px; font-family: 'Funnel Display', sans-serif;">🎉 É um MENINO! 🎉</h2>
+            <h2 style="font-size: 3.5rem; color: #4a90e2; margin-bottom: 30px; font-family: 'Funnel Display', sans-serif;">É um MENINO!</h2>
             <div style="margin: 30px 0;">
                 <img src="ursinho_menino.png" alt="Ursinho Menino" style="max-width: 250px; width: 100%; height: auto; animation: bearBounce 2s ease-in-out infinite;">
             </div>
-            <p style="font-size: 1.5rem; color: #8b5a7a; font-style: italic; margin-top: 20px; font-family: 'Funnel Display', sans-serif;">Parabéns pela nova jornada! 💙</p>
         `;
     }
     

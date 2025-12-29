@@ -8,6 +8,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Mea+Culpa&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+      import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyC_nlRbqiBRjXOc-2VTDrLQm7t5NQSsaV0",
+        authDomain: "charevelacao-c6269.firebaseapp.com",
+        databaseURL: "https://charevelacao-c6269-default-rtdb.firebaseio.com/",
+        projectId: "charevelacao-c6269",
+        storageBucket: "charevelacao-c6269.firebasestorage.app",
+        messagingSenderId: "723857034678",
+        appId: "1:723857034678:web:10d3876c0f275925c1c517"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+      
+      // Disponibiliza globalmente
+      window.firebaseDatabase = database;
+      window.firebaseReady = true;
+    </script>
 </head>
 <body>
     <div class="hearts-background"></div>

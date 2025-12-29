@@ -1,20 +1,78 @@
-// Contadores de votos
-let votesMenina = parseInt(localStorage.getItem('votesMenina')) || 0;
-let votesMenino = parseInt(localStorage.getItem('votesMenino')) || 0;
+// Contadores de votos - Firebase
+let votesMenina = 0;
+let votesMenino = 0;
 let hasVoted = localStorage.getItem('hasVoted') === 'true';
+let database = null;
 
 // Timer de 5 segundos para suspense
 let countdownSeconds = 5;
 let countdownInterval = null;
 
+// Aguarda Firebase carregar
+function initFirebase() {
+    if (window.firebaseDatabase) {
+        database = window.firebaseDatabase;
+        loadVotes();
+        listenToVotes();
+    } else {
+        // Fallback para localStorage se Firebase não carregar
+        votesMenina = parseInt(localStorage.getItem('votesMenina')) || 0;
+        votesMenino = parseInt(localStorage.getItem('votesMenino')) || 0;
+        updateVoteCounts();
+    }
+}
+
+// Carrega votos do Firebase
+function loadVotes() {
+    if (!database) return;
+    
+    const votesRef = ref(database, 'votes');
+    get(votesRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            votesMenina = snapshot.val().menina || 0;
+            votesMenino = snapshot.val().menino || 0;
+            updateVoteCounts();
+        } else {
+            // Inicializa com zeros se não existir
+            set(votesRef, {
+                menina: 0,
+                menino: 0
+            });
+        }
+    }).catch((error) => {
+        console.error('Erro ao carregar votos:', error);
+        // Fallback para localStorage
+        votesMenina = parseInt(localStorage.getItem('votesMenina')) || 0;
+        votesMenino = parseInt(localStorage.getItem('votesMenino')) || 0;
+        updateVoteCounts();
+    });
+}
+
+// Escuta mudanças em tempo real
+function listenToVotes() {
+    if (!database) return;
+    
+    const votesRef = ref(database, 'votes');
+    onValue(votesRef, (snapshot) => {
+        if (snapshot.exists()) {
+            votesMenina = snapshot.val().menina || 0;
+            votesMenino = snapshot.val().menino || 0;
+            updateVoteCounts();
+        }
+    });
+}
+
 // Atualiza os contadores na tela
 function updateVoteCounts() {
-    document.getElementById('countMenina').textContent = votesMenina;
-    document.getElementById('countMenino').textContent = votesMenino;
+    const countMeninaEl = document.getElementById('countMenina');
+    const countMeninoEl = document.getElementById('countMenino');
+    
+    if (countMeninaEl) countMeninaEl.textContent = votesMenina;
+    if (countMeninoEl) countMeninoEl.textContent = votesMenino;
     
     // Habilita o botão de continuar se pelo menos um voto foi dado
     const nextBtn1 = document.getElementById('nextBtn1');
-    if (votesMenina > 0 || votesMenino > 0) {
+    if (nextBtn1 && (votesMenina > 0 || votesMenino > 0)) {
         nextBtn1.disabled = false;
     }
 }
@@ -26,30 +84,49 @@ function vote(option) {
         return;
     }
     
-    if (option === 'menina') {
-        votesMenina++;
-        localStorage.setItem('votesMenina', votesMenina);
-    } else if (option === 'menino') {
-        votesMenino++;
-        localStorage.setItem('votesMenino', votesMenino);
-    }
-    
     hasVoted = true;
     localStorage.setItem('hasVoted', 'true');
     localStorage.setItem('lastVote', option);
     
+    if (database) {
+        // Salva no Firebase
+        const votesRef = ref(database, 'votes');
+        if (option === 'menina') {
+            votesMenina++;
+            set(votesRef, {
+                menina: votesMenina,
+                menino: votesMenino
+            });
+        } else if (option === 'menino') {
+            votesMenino++;
+            set(votesRef, {
+                menina: votesMenina,
+                menino: votesMenino
+            });
+        }
+    } else {
+        // Fallback para localStorage
+        if (option === 'menina') {
+            votesMenina++;
+            localStorage.setItem('votesMenina', votesMenina);
+        } else if (option === 'menino') {
+            votesMenino++;
+            localStorage.setItem('votesMenino', votesMenino);
+        }
+        updateVoteCounts();
+    }
+    
     // Animação de confete
     createVoteConfetti(option);
     
-    // Atualiza os contadores
-    updateVoteCounts();
-    
     // Feedback visual
     const button = event.target.closest('.vote-btn');
-    button.style.transform = 'scale(1.1)';
-    setTimeout(() => {
-        button.style.transform = 'scale(1)';
-    }, 300);
+    if (button) {
+        button.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            button.style.transform = 'scale(1)';
+        }, 300);
+    }
 }
 
 // Cria confetes ao votar
@@ -197,7 +274,6 @@ function showRevelation() {
             <div style="margin: 30px 0;">
                 <img src="ursinho_menina.png" alt="Ursinho Menina" style="max-width: 250px; width: 100%; height: auto; animation: bearBounce 2s ease-in-out infinite;">
             </div>
-            <h3 style="font-size: 2.5rem; color: #ff6b9d; margin: 20px 0; font-family: 'Funnel Display', sans-serif;">Maria Helena</h3>
             <p style="font-size: 1.5rem; color: #8b5a7a; font-style: italic; margin-top: 20px; font-family: 'Funnel Display', sans-serif;">Parabéns pela nova jornada! 💕</p>
         `;
     } else {
@@ -207,7 +283,6 @@ function showRevelation() {
             <div style="margin: 30px 0;">
                 <img src="ursinho_menino.png" alt="Ursinho Menino" style="max-width: 250px; width: 100%; height: auto; animation: bearBounce 2s ease-in-out infinite;">
             </div>
-            <h3 style="font-size: 2.5rem; color: #4a90e2; margin: 20px 0; font-family: 'Funnel Display', sans-serif;">José Henrique</h3>
             <p style="font-size: 1.5rem; color: #8b5a7a; font-style: italic; margin-top: 20px; font-family: 'Funnel Display', sans-serif;">Parabéns pela nova jornada! 💙</p>
         `;
     }
@@ -244,7 +319,22 @@ function createFinalConfetti() {
 
 // Inicializa a página
 document.addEventListener('DOMContentLoaded', function() {
-    updateVoteCounts();
+    // Aguarda Firebase carregar
+    if (window.firebaseReady) {
+        initFirebase();
+    } else {
+        // Tenta novamente após um delay
+        setTimeout(() => {
+            if (window.firebaseDatabase) {
+                initFirebase();
+            } else {
+                // Fallback para localStorage
+                votesMenina = parseInt(localStorage.getItem('votesMenina')) || 0;
+                votesMenino = parseInt(localStorage.getItem('votesMenino')) || 0;
+                updateVoteCounts();
+            }
+        }, 500);
+    }
     
     // Cria corações flutuantes no background
     createFloatingHearts();

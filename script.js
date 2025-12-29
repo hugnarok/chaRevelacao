@@ -1,7 +1,6 @@
 // Contadores de votos - Firebase
 let votesMenina = 0;
 let votesMenino = 0;
-let hasVoted = localStorage.getItem('hasVoted') === 'true';
 let database = null;
 
 // Timer de 5 segundos para suspense
@@ -24,20 +23,23 @@ function initFirebase() {
 
 // Carrega votos do Firebase
 function loadVotes() {
-    if (!database) return;
+    if (!database || !window.firebaseRef || !window.firebaseGet) return;
     
-    const votesRef = ref(database, 'votes');
-    get(votesRef).then((snapshot) => {
+    const votesRef = window.firebaseRef(database, 'votes');
+    window.firebaseGet(votesRef).then((snapshot) => {
         if (snapshot.exists()) {
             votesMenina = snapshot.val().menina || 0;
             votesMenino = snapshot.val().menino || 0;
             updateVoteCounts();
+            enableContinueButton();
         } else {
             // Inicializa com zeros se não existir
-            set(votesRef, {
-                menina: 0,
-                menino: 0
-            });
+            if (window.firebaseSet) {
+                window.firebaseSet(votesRef, {
+                    menina: 0,
+                    menino: 0
+                });
+            }
         }
     }).catch((error) => {
         console.error('Erro ao carregar votos:', error);
@@ -45,19 +47,25 @@ function loadVotes() {
         votesMenina = parseInt(localStorage.getItem('votesMenina')) || 0;
         votesMenino = parseInt(localStorage.getItem('votesMenino')) || 0;
         updateVoteCounts();
+        enableContinueButton();
     });
 }
 
+// Flag para evitar atualização circular
+let isUpdatingVotes = false;
+
 // Escuta mudanças em tempo real
 function listenToVotes() {
-    if (!database) return;
+    if (!database || !window.firebaseRef || !window.firebaseOnValue) return;
     
-    const votesRef = ref(database, 'votes');
-    onValue(votesRef, (snapshot) => {
-        if (snapshot.exists()) {
+    const votesRef = window.firebaseRef(database, 'votes');
+    window.firebaseOnValue(votesRef, (snapshot) => {
+        if (snapshot.exists() && !isUpdatingVotes) {
             votesMenina = snapshot.val().menina || 0;
             votesMenino = snapshot.val().menino || 0;
             updateVoteCounts();
+            // Garante que o botão seja habilitado se houver votos
+            enableContinueButton();
         }
     });
 }
@@ -70,7 +78,11 @@ function updateVoteCounts() {
     if (countMeninaEl) countMeninaEl.textContent = votesMenina;
     if (countMeninoEl) countMeninoEl.textContent = votesMenino;
     
-    // Habilita o botão de continuar se pelo menos um voto foi dado
+    enableContinueButton();
+}
+
+// Habilita o botão de continuar se houver votos
+function enableContinueButton() {
     const nextBtn1 = document.getElementById('nextBtn1');
     if (nextBtn1 && (votesMenina > 0 || votesMenino > 0)) {
         nextBtn1.disabled = false;
@@ -79,31 +91,57 @@ function updateVoteCounts() {
 
 // Função para votar
 function vote(option) {
-    if (hasVoted) {
-        alert('Você já votou! Obrigado pela participação! 💕');
-        return;
-    }
-    
-    hasVoted = true;
-    localStorage.setItem('hasVoted', 'true');
+    // Salva a última escolha para destacar no Step 2
     localStorage.setItem('lastVote', option);
     
-    if (database) {
-        // Salva no Firebase
-        const votesRef = ref(database, 'votes');
-        if (option === 'menina') {
-            votesMenina++;
-            set(votesRef, {
-                menina: votesMenina,
-                menino: votesMenino
+    if (database && window.firebaseRef && window.firebaseGet && window.firebaseSet) {
+        // Salva no Firebase usando incremento atômico
+        const votesRef = window.firebaseRef(database, 'votes');
+        
+        // Primeiro busca o valor atual
+        window.firebaseGet(votesRef).then((snapshot) => {
+            const current = snapshot.exists() ? snapshot.val() : { menina: 0, menino: 0 };
+            const newValues = { ...current };
+            
+            // Incrementa o voto correspondente
+            if (option === 'menina') {
+                newValues.menina = (current.menina || 0) + 1;
+            } else if (option === 'menino') {
+                newValues.menino = (current.menino || 0) + 1;
+            }
+            
+            // Salva no Firebase
+            isUpdatingVotes = true;
+            window.firebaseSet(votesRef, newValues).then(() => {
+                // Atualiza valores locais após salvar
+                votesMenina = newValues.menina || 0;
+                votesMenino = newValues.menino || 0;
+                updateVoteCounts();
+                enableContinueButton();
+                isUpdatingVotes = false;
+            }).catch((error) => {
+                isUpdatingVotes = false;
+                console.error('Erro ao salvar voto:', error);
+                // Fallback: incrementa localmente mesmo com erro
+                if (option === 'menina') {
+                    votesMenina++;
+                } else if (option === 'menino') {
+                    votesMenino++;
+                }
+                updateVoteCounts();
+                enableContinueButton();
             });
-        } else if (option === 'menino') {
-            votesMenino++;
-            set(votesRef, {
-                menina: votesMenina,
-                menino: votesMenino
-            });
-        }
+        }).catch((error) => {
+            console.error('Erro ao buscar votos:', error);
+            // Fallback: incrementa localmente
+            if (option === 'menina') {
+                votesMenina++;
+            } else if (option === 'menino') {
+                votesMenino++;
+            }
+            updateVoteCounts();
+            enableContinueButton();
+        });
     } else {
         // Fallback para localStorage
         if (option === 'menina') {
@@ -114,6 +152,7 @@ function vote(option) {
             localStorage.setItem('votesMenino', votesMenino);
         }
         updateVoteCounts();
+        enableContinueButton();
     }
     
     // Animação de confete
@@ -332,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 votesMenina = parseInt(localStorage.getItem('votesMenina')) || 0;
                 votesMenino = parseInt(localStorage.getItem('votesMenino')) || 0;
                 updateVoteCounts();
+                enableContinueButton();
             }
         }, 500);
     }
